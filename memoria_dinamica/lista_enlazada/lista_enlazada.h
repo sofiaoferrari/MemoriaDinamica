@@ -30,6 +30,7 @@ class ListaEnlazada {
     private:
         struct nodo {
             int elemento;
+            nodo* anterior;
             nodo* siguiente;
         };
         nodo* _primero;

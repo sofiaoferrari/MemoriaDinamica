@@ -10,14 +10,17 @@ int ListaEnlazada::longitud() {
 
 void ListaEnlazada::agregarAtras(const int elemento) {
     if (this->_primero == nullptr){
-        this->_primero = new nodo {elemento, nullptr};
-        _actual = this->_primero; //?? preguntar
+        this->_primero = new nodo {elemento, nullptr, nullptr};
+        this->_primero->anterior = this->_primero;
+        this->_primero->siguiente = this->_primero;
+        _actual = this->_primero; 
     }else {
         nodo* actual = this->_primero;
-        while (actual->siguiente != nullptr) {
+        while (actual->siguiente != this->_primero) {
             actual = actual->siguiente;
         }
-        actual->siguiente = new nodo {elemento, nullptr};
+        actual->siguiente = new nodo {elemento, actual, this->_primero};
+        this->_primero->anterior = actual->siguiente;
     }
     this->_longitud++;
 }
@@ -36,7 +39,7 @@ int ListaEnlazada::iesimo(const int posicion) {
 
 ListaEnlazada::~ListaEnlazada() {
     nodo * actual = this->_primero;
-    while (actual != nullptr) {
+    for(int i=0; i < _longitud; i++) {
         nodo* sig = actual->siguiente;
         delete actual;
         actual = sig;
@@ -54,67 +57,38 @@ int ListaEnlazada::suma() {
 
 void ListaEnlazada::borrarUltimo() {
     // Pre: 0 < *this.longitud()
-    nodo* anterior = this->_primero;
-    if (anterior->siguiente == nullptr){
-        delete anterior;
-        this->_primero = nullptr;
-        _actual = nullptr;
-    } else {
-        nodo* actual = anterior->siguiente;
-        while (actual->siguiente != nullptr){
-            anterior = actual;
-            actual = actual->siguiente;
-        }
-        if (actual == _actual)
-            _actual = actual->siguiente;
-        delete actual;
-        anterior->siguiente = nullptr;
-    }
-    _longitud--;
+    borrarIesimo(_longitud-1);
 }
 
 void ListaEnlazada::borrarIesimo(const int posicion) {
     // Pre: 0 <= pos < *this.longitud()
-    nodo* anterior = this->_primero;
-    if (posicion == _longitud-1) borrarUltimo();
-    else if (posicion == 0){
-        this->_primero = anterior->siguiente;
-        _actual = this->_primero; //
-        delete anterior;
-        _longitud--;
-    } else {
-        for(int i=0; i < posicion-1; i++) 
-            anterior = anterior->siguiente;
-        nodo* actual = anterior->siguiente;
-        anterior->siguiente = actual->siguiente;
-        if (actual == _actual)
-            _actual = actual->siguiente;
-        delete actual;
-        _longitud--;
+    nodo* iesimo = this->_primero;
+    if (posicion == 0 && _longitud == 1) {
+        this->_primero = nullptr;    
+    } else if (posicion == 0) {
+        this->_primero = iesimo->siguiente;
+        (iesimo->anterior)->siguiente = iesimo->siguiente; 
+        (iesimo->siguiente)->anterior = iesimo->anterior;
+    }  else {
+        for(int i=0; i < posicion; i++) 
+            iesimo = iesimo->siguiente;
+        (iesimo->anterior)->siguiente = iesimo->siguiente; 
+        (iesimo->siguiente)->anterior = iesimo->anterior;
     }
+    if (iesimo == _actual)
+        _actual = iesimo->siguiente;
+    delete iesimo;
+    _longitud--;
 }
 
 int ListaEnlazada::actual() {
-    //
     return _actual->elemento;
 }
 
 void ListaEnlazada::avanzar() {
-    if (_actual->siguiente == nullptr)
-        _actual = this->_primero;
-    else _actual = _actual->siguiente;
+    _actual = _actual->siguiente;
 }
 
 void ListaEnlazada::retroceder() {
-    nodo* anterior = this->_primero;
-    if (_actual == anterior && _longitud > 1) {
-        while(anterior->siguiente != nullptr){
-            anterior = anterior->siguiente;
-        }
-        _actual = anterior;
-    } else if (_actual != anterior) {
-        while(anterior->siguiente != _actual)
-            anterior = anterior->siguiente;
-    }
-        _actual = anterior;
+    _actual = _actual->anterior;
 }
